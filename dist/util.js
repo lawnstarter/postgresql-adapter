@@ -416,12 +416,6 @@ var Util = {
     _lodash2['default'].each(data, function (value, attr) {
       var definition = schema.definition[attr];
 
-      // if in sails look for custom dbType attached to item and add to definition
-      // to match pattern isSpatialColumn is looking for
-      if (definition && schema._attributes[attr] && schema._attributes[attr].dbType) {
-        definition.dbType = schema._attributes[attr].dbType;
-      }
-
       // remove unrecognized fields (according to schema) from data
       if (!definition) {
         delete data[attr];
@@ -432,6 +426,19 @@ var Util = {
       if (!definition || definition.autoIncrement) {
         delete data[attr];
       }
+
+      // if in sails look for custom dbType attached to model and add to definition
+      // to match pattern isSpatialColumn is checking
+      // example model attribute in sails:
+      // location: {
+      //   type: 'json',
+      //   dbType: 'geometry(Point, 4326)'
+      // }
+      if (definition && !definition.dbType && schema._attributes && schema._attributes[attr] && schema._attributes[attr].dbType) {
+
+        definition.dbType = schema._attributes[attr].dbType;
+      }
+
       if (_spatial2['default'].isSpatialColumn(definition)) {
         data[attr] = _spatial2['default'].fromGeojson(data[attr], definition, cxn);
       }
